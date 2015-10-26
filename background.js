@@ -1,54 +1,59 @@
-var connection={},
+var devtoolsConnection,
     setPortConnections,
+    displayNotification,
     devtoolsMessageListener,
-    devtoolsDisconnectListener,
-    contentScriptMessageListener,
-    contentScriptDisconectListener;
+    contentScriptConnection,
+    contentScriptMessageListener;
 
-  // --- Message Listeners ------
-  devtoolsMessageListener = function(message, sender, sendResponse) {
-    if (message.har) {
-      connection.contentScript.postMessage({har: message.har});
-    }
-
-    if (message.request) {
-      console.log(message.request);
-      connection.contentScript.postMessage({request: message.request});
+  displayNotification = function(data) {
+    var companyData = data[0];
+    if(companyData) {
+      chrome.notifications.create(Math.random().toString(), {
+        iconUrl: companyData.logo.company_logo_thumb.url,
+        title: 'Tracking Detected!',
+        type: 'basic',
+        message: companyData.name
+      }, function() {});
     }
   };
 
   contentScriptMessageListener = function(message, sender, sendResponse) {
     if (message.get === 'har') {
-      connection.devtools.postMessage({get: 'har'});
+      devtoolsConnection.postMessage({get: 'har'});
     }
   };
 
+  devtoolsMessageListener = function(message, sender, sendResponse) {
+    if (message.har) {
+      console.log(message.har);
 
-  // --- Disconnect Listeners ------
-  devtoolsDisconnectListener = function(port) {
-    connection.devtools = undefined;
-    port.onMessage.removeListener(devtoolsMessageListener);
+      message.har.entries.forEach(function(entry) {
+        var url = entry.request.url;
+        var companyName = companyService.getName(url);
+        if (companyName) {
+          companyService.getInfo(companyName, url, displayNotification);
+        }
+      });
+
+    }
   };
-
-  contentScriptDisconectListener = function(port){
-    connection.contentScript = undefined;
-    port.onMessage.removeListener(contentScriptMessageListener);
-  }
 
   // --- Add Listeners on Connect ------
   setPortConnections = function (port) {
-    connection[port.name] = port;
-
     if (port.name === 'contentScript') {
-      port.onMessage.addListener(contentScriptMessageListener);
-      port.onDisconnect.addListener(contentScriptDisconectListener);
+      contentScriptConnection = port;
       console.log('Connected to contentScript');
     }
     
     if (port.name === 'devtools') {
-      port.onMessage.addListener(devtoolsMessageListener);
-      port.onDisconnect.addListener(devtoolsDisconnectListener);
+      devtoolsConnection = port;
       console.log('Connected to devtools');
+    }
+
+    if(contentScriptConnection && devtoolsConnection) {
+      port.onMessage.addListener(contentScriptMessageListener);
+      port.onMessage.addListener(devtoolsMessageListener);
+      console.log('Both Connections Live!');
     }
     
   }

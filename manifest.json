@@ -1,19 +1,24 @@
 {
   "manifest_version": 2,
 
-  "name": "Requests",
-  "description": "Requests",
+  "name": "Koala",
+  "description": "Koala",
   "version": "1.0",
   "devtools_page": "devtools.html",
   "background": {
-    "scripts": ["background.js"]
+    "scripts": [
+      "./node_modules/jquery/dist/jquery.min.js",
+      "./services/company.js",
+      "background.js"
+    ]
   },
   "browser_action": {
     "default_icon": "icon.png",
     "default_title": "Live HTTP headers"
   },
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "notifications"
   ],
   "content_scripts": [
     {
@@ -22,7 +27,9 @@
       ],
       "all_frames": true,
       "js": [
-        "jq.js",
+        "./node_modules/numeral/min/numeral.min.js",
+        "./node_modules/jquery/dist/jquery.min.js",
+        "./services/entries.js",
         "content_script.js"
       ]
     }

@@ -1,0 +1,14 @@
+{
+  "name": "koala",
+  "description": "A Chrome extension for QAing creative ad units.",
+  "author": "David Christian <david@displayadtech.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DWC01/koala"
+  },
+  "dependencies": {
+    "numeral": "1.5.3",
+    "jquery": "2.1.4"
+  },
+  "engine": "node >= 1.6.2"
+}
